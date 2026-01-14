@@ -10,7 +10,7 @@ namespace ImageCropTool
     public partial class MainForm : Form
     {
         // ==============================
-        // 🔹 이미지 데이터
+        //  이미지 데이터
         // ==============================
         private Bitmap originalBitmap = null;
         private Mat originalMat = null;
@@ -21,7 +21,7 @@ namespace ImageCropTool
         private float scaleY = 1.0f;
 
         // ==============================
-        // 🔹 클릭 / 드래그 상태
+        //  클릭 / 드래그 상태
         // ==============================
         private enum ClickState { None, OnePoint, TwoPoints }
         private ClickState clickState = ClickState.None;
@@ -40,6 +40,11 @@ namespace ImageCropTool
         private PointF firstOriginalPt;
         private PointF secondOriginalPt;
 
+        // 선 정보
+        private float lineLength = 0f;
+        private int cropCount = 0;
+
+
         // ==============================
         public MainForm()
         {
@@ -52,7 +57,7 @@ namespace ImageCropTool
         }
 
         // ==============================
-        // 🔹 이미지 로드
+        //  이미지 로드
         // ==============================
         private async void btnLoadImage_Click(object sender, EventArgs e)
         {
@@ -106,7 +111,7 @@ namespace ImageCropTool
         }
 
         // ==============================
-        // 🔹 좌표 변환
+        //  좌표 변환
         // ==============================
         private PointF ViewToOriginal(System.Drawing.Point viewPt)
         {
@@ -115,15 +120,38 @@ namespace ImageCropTool
                 viewPt.Y * scaleY);
         }
 
+        // 선길이 계산 함수(Original 기준)
+        private void UpdateLineInfo()
+        {
+            if (clickState != ClickState.TwoPoints)
+            {
+                lblLineLength.Text = "Line Length: -";
+                lblCropCount.Text = "Crop Count: -";
+                return;
+            }
+
+            float dx = secondOriginalPt.X - firstOriginalPt.X;
+            float dy = secondOriginalPt.Y - firstOriginalPt.Y;
+
+            lineLength = (float)Math.Sqrt(dx * dx + dy * dy);
+
+            int cropSize = (int)numCropSize.Value;
+            cropCount = (int)(lineLength / cropSize);
+
+            lblLineLength.Text = $"Line Length: {lineLength:F1}px";
+            lblCropCount.Text = $"Crop Count: {cropCount}";
+        }
+
+
         // ==============================
-        // 🔹 마우스 Down
+        //  마우스 Down
         // ==============================
         private void pictureBoxImage_MouseDown(object sender, MouseEventArgs e)
         {
             if (viewBitmap == null)
                 return;
 
-            // 🔴 점 히트 테스트 (드래그 시작)
+            //  점 히트 테스트 (드래그 시작)
             if (clickState != ClickState.None)
             {
                 if (IsHit(e.Location, firstViewPt))
@@ -141,7 +169,7 @@ namespace ImageCropTool
                 }
             }
 
-            // 🔵 클릭 로직
+            //  클릭 로직
             if (clickState == ClickState.None)
             {
                 firstViewPt = e.Location;
@@ -153,10 +181,12 @@ namespace ImageCropTool
                 secondViewPt = e.Location;
                 secondOriginalPt = ViewToOriginal(secondViewPt);
                 clickState = ClickState.TwoPoints;
+
+                UpdateLineInfo();
             }
             else
             {
-                // 🔁 3번째 클릭 → 초기화 후 새 시작
+                //  3번째 클릭 → 초기화 후 새 시작
                 ResetPoints();
 
                 firstViewPt = e.Location;
@@ -168,7 +198,7 @@ namespace ImageCropTool
         }
 
         // ==============================
-        // 🔹 마우스 Move (드래그)
+        //  마우스 Move (드래그)
         // ==============================
         private void pictureBoxImage_MouseMove(object sender, MouseEventArgs e)
         {
@@ -179,18 +209,20 @@ namespace ImageCropTool
             {
                 firstViewPt = e.Location;
                 firstOriginalPt = ViewToOriginal(firstViewPt);
+                UpdateLineInfo();
             }
             else if (draggingSecondPoint)
             {
                 secondViewPt = e.Location;
                 secondOriginalPt = ViewToOriginal(secondViewPt);
+                UpdateLineInfo();
             }
 
             pictureBoxImage.Invalidate();
         }
 
         // ==============================
-        // 🔹 마우스 Up
+        //  마우스 Up
         // ==============================
         private void pictureBoxImage_MouseUp(object sender, MouseEventArgs e)
         {
@@ -200,7 +232,7 @@ namespace ImageCropTool
         }
 
         // ==============================
-        // 🔹 Paint
+        //  Paint
         // ==============================
         private void pictureBoxImage_Paint(object sender, PaintEventArgs e)
         {
@@ -220,7 +252,7 @@ namespace ImageCropTool
         }
 
         // ==============================
-        // 🔹 유틸
+        //  유틸
         // ==============================
         private bool IsHit(System.Drawing.Point p, System.Drawing.Point target)
         {
@@ -267,5 +299,9 @@ namespace ImageCropTool
             return dst;
         }
 
+        private void numCropSize_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateLineInfo();
+        }
     }
 }
