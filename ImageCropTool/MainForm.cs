@@ -7,7 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-// ⭐ Point 충돌 방지용 alias
+//  Point 충돌 방지용 alias
 using DPoint = System.Drawing.Point;
 using DRect = System.Drawing.Rectangle;
 
@@ -115,8 +115,8 @@ namespace ImageCropTool
                     originalBitmap?.Dispose();
                     originalMat?.Dispose();
 
-                    originalBitmap = new Bitmap(dlg.FileName);
-                    originalMat = BitmapConverter.ToMat(originalBitmap);
+                    originalBitmap = new Bitmap(dlg.FileName);   // 원본 저장
+                    originalMat = BitmapConverter.ToMat(originalBitmap);  // OpenCV용으로 복사
                 });
 
                 // 좌표 변환 비율 계산
@@ -191,7 +191,7 @@ namespace ImageCropTool
                 return;
             }
 
-            // ⭐ 정상 클릭 진입 지점
+            // 정상 클릭 진입 지점
             invalidClickNotified = false;
 
             if (clickState != ClickState.None)
@@ -212,17 +212,17 @@ namespace ImageCropTool
                 }
             }
 
-            if (clickState == ClickState.None)
+            if (clickState == ClickState.None)   // 아무 점도 없다면
             {
-                firstViewPt = e.Location;
-                firstOriginalPt = ViewToOriginal(firstViewPt);
-                clickState = ClickState.OnePoint;
+                firstViewPt = e.Location;   // 지금 누른 곳을 1번 점
+                firstOriginalPt = ViewToOriginal(firstViewPt);  // 원본 위치 계산
+                clickState = ClickState.OnePoint;    // 점 하나 찍힘 상태 변경
             }
             else if (clickState == ClickState.OnePoint)
             {
-                secondViewPt = e.Location;
-                secondOriginalPt = ViewToOriginal(secondViewPt);
-                clickState = ClickState.TwoPoints;
+                secondViewPt = e.Location;   // 지금 누른 곳을 2번 점
+                secondOriginalPt = ViewToOriginal(secondViewPt);  // 원본 위치 게산
+                clickState = ClickState.TwoPoints;  // 두 점 다 찍힘 상태변경
                 UpdateLineInfo();
             }
             else
@@ -295,9 +295,10 @@ namespace ImageCropTool
             if (cropSize <= 0)
                 return;
 
-            float dx = secondOriginalPt.X - firstOriginalPt.X;
-            float dy = secondOriginalPt.Y - firstOriginalPt.Y;
-            float length = (float)Math.Sqrt(dx * dx + dy * dy);
+            float dx = secondOriginalPt.X - firstOriginalPt.X;    // 가로 거리
+            float dy = secondOriginalPt.Y - firstOriginalPt.Y;    //  세로 거리
+            float length = (float)Math.Sqrt(dx * dx + dy * dy);   // 전체 거리
+
             if (length < 1)
                 return;
 
@@ -452,9 +453,10 @@ namespace ImageCropTool
             string folder,
             ref int index)
         {
+            // cx, cy : 자를 중심점 위치
             float cx = firstOriginalPt.X + ux * dist;
             float cy = firstOriginalPt.Y + uy * dist;
-
+            // x, y : 자를 사각형의 왼쪽 상단 모서리 구하기
             int x = (int)Math.Round(cx - cropSize / 2f);
             int y = (int)Math.Round(cy - cropSize / 2f);
 
@@ -467,8 +469,10 @@ namespace ImageCropTool
             if (w <= 0 || h <= 0)
                 return;
 
+            // 자를 영역 정하기
             Rect roi = new Rect(x, y, w, h);
 
+            // originalMat(원본)에서 roi(영역)만큼만 떼어내서 (Mat cropped) 파일로 저장
             using (Mat cropped = new Mat(originalMat, roi))
             {
                 string path = Path.Combine(folder, $"crop_{index:D3}.png");
