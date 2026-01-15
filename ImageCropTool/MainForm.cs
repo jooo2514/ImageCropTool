@@ -411,24 +411,31 @@ namespace ImageCropTool
             float ux = dx / length;
             float uy = dy / length;
 
-            string folder = Path.Combine(Application.StartupPath, "Crops");
+            // Crop Count와 저장 개수 완전히 통일
+            int cropTotal = (int)Math.Ceiling(length / cropSize);
+
+            // 🔹 타임스탬프 폴더
+            string timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string folder = Path.Combine(Application.StartupPath, "Crops", timeStamp);
             Directory.CreateDirectory(folder);
 
-            int index = 0;
+            int fileIndex = 1; // ⭐ 001부터 시작
 
-            // 1️. 규칙적인 crop
-            float dist = 0;
-            while (dist < length)
+            for (int i = 0; i < cropTotal; i++)
             {
-                CropOne(dist, ux, uy, cropSize, folder, ref index);
-                dist += cropSize;
+                float dist = i * cropSize;
+
+                // ⭐ 마지막은 무조건 length
+                if (dist > length)
+                    dist = length;
+
+                CropOne(dist, ux, uy, cropSize, folder, ref fileIndex);
             }
 
-            // 2️. 마지막 점 위치 crop (강제 포함)
-            CropOne(length, ux, uy, cropSize, folder, ref index);
-
-            MessageBox.Show($"Crop 저장 완료 ({index}개)");
+            MessageBox.Show($"Crop 저장 완료 ({fileIndex - 1}개)");
         }
+
+
         private void CropOne(
             float dist,
             float ux,
@@ -443,31 +450,24 @@ namespace ImageCropTool
             int x = (int)Math.Round(cx - cropSize / 2f);
             int y = (int)Math.Round(cy - cropSize / 2f);
 
-            // ⭐ 위치 clamp
+            // 위치 clamp
             if (x < 0) x = 0;
             if (y < 0) y = 0;
 
-            // ⭐ 크기 clamp (핵심)
             int width = cropSize;
             int height = cropSize;
 
+            // 크기 clamp (핵심)
             if (x + width > originalMat.Width)
                 width = originalMat.Width - x;
 
             if (y + height > originalMat.Height)
                 height = originalMat.Height - y;
 
-            // 안전 체크
             if (width <= 0 || height <= 0)
                 return;
 
-            if (cx < 0 || cy < 0 ||
-                cx >= originalMat.Width ||
-                cy >= originalMat.Height)
-                return;
-
-            OpenCvSharp.Rect roi =
-                new OpenCvSharp.Rect(x, y, width, height);
+            OpenCvSharp.Rect roi = new OpenCvSharp.Rect(x, y, width, height);
 
             using (OpenCvSharp.Mat cropped = new OpenCvSharp.Mat(originalMat, roi))
             {
@@ -476,6 +476,7 @@ namespace ImageCropTool
                 index++;
             }
         }
+
 
         private Rectangle GetImageViewRect()
         {
@@ -494,6 +495,8 @@ namespace ImageCropTool
             }
             else
             {
+
+
                 int h = pictureBoxImage.Height;
                 int w = (int)(h * imgRatio);
                 int x = (pictureBoxImage.Width - w) / 2;
