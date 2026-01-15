@@ -33,24 +33,24 @@ namespace ImageCropTool
             this.btnLoadImage = new System.Windows.Forms.Button();
             this.splitContainerMain = new System.Windows.Forms.SplitContainer();
             this.panelRight = new System.Windows.Forms.Panel();
-            this.btnSave = new System.Windows.Forms.Button();
-            this.btnReset = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.groupCrop = new System.Windows.Forms.GroupBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.numCropSize = new System.Windows.Forms.NumericUpDown();
             this.groupInfo = new System.Windows.Forms.GroupBox();
-            this.lblLineLength = new System.Windows.Forms.Label();
             this.lblCropCount = new System.Windows.Forms.Label();
+            this.lblLineLength = new System.Windows.Forms.Label();
+            this.groupCrop = new System.Windows.Forms.GroupBox();
+            this.numCropSize = new System.Windows.Forms.NumericUpDown();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.btnReset = new System.Windows.Forms.Button();
+            this.btnCropSave = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxImage)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).BeginInit();
             this.splitContainerMain.Panel1.SuspendLayout();
             this.splitContainerMain.Panel2.SuspendLayout();
             this.splitContainerMain.SuspendLayout();
             this.panelRight.SuspendLayout();
+            this.groupInfo.SuspendLayout();
             this.groupCrop.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numCropSize)).BeginInit();
-            this.groupInfo.SuspendLayout();
             this.SuspendLayout();
             // 
             // pictureBoxImage
@@ -59,7 +59,7 @@ namespace ImageCropTool
             this.pictureBoxImage.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBoxImage.Location = new System.Drawing.Point(0, 0);
             this.pictureBoxImage.Name = "pictureBoxImage";
-            this.pictureBoxImage.Size = new System.Drawing.Size(1111, 953);
+            this.pictureBoxImage.Size = new System.Drawing.Size(1109, 953);
             this.pictureBoxImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBoxImage.TabIndex = 0;
             this.pictureBoxImage.TabStop = false;
@@ -70,7 +70,7 @@ namespace ImageCropTool
             this.btnLoadImage.Dock = System.Windows.Forms.DockStyle.Top;
             this.btnLoadImage.Location = new System.Drawing.Point(0, 0);
             this.btnLoadImage.Name = "btnLoadImage";
-            this.btnLoadImage.Size = new System.Drawing.Size(365, 73);
+            this.btnLoadImage.Size = new System.Drawing.Size(367, 73);
             this.btnLoadImage.TabIndex = 1;
             this.btnLoadImage.Text = "이미지 불러오기";
             this.btnLoadImage.UseVisualStyleBackColor = true;
@@ -92,7 +92,7 @@ namespace ImageCropTool
             this.splitContainerMain.Panel2.AccessibleName = "";
             this.splitContainerMain.Panel2.Controls.Add(this.panelRight);
             this.splitContainerMain.Size = new System.Drawing.Size(1482, 953);
-            this.splitContainerMain.SplitterDistance = 1111;
+            this.splitContainerMain.SplitterDistance = 1109;
             this.splitContainerMain.SplitterWidth = 6;
             this.splitContainerMain.TabIndex = 2;
             // 
@@ -102,44 +102,43 @@ namespace ImageCropTool
             this.panelRight.Controls.Add(this.groupCrop);
             this.panelRight.Controls.Add(this.label1);
             this.panelRight.Controls.Add(this.btnReset);
-            this.panelRight.Controls.Add(this.btnSave);
+            this.panelRight.Controls.Add(this.btnCropSave);
             this.panelRight.Controls.Add(this.btnLoadImage);
             this.panelRight.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelRight.Location = new System.Drawing.Point(0, 0);
             this.panelRight.Name = "panelRight";
-            this.panelRight.Size = new System.Drawing.Size(365, 953);
+            this.panelRight.Size = new System.Drawing.Size(367, 953);
             this.panelRight.TabIndex = 0;
             // 
-            // btnSave
+            // groupInfo
             // 
-            this.btnSave.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnSave.Location = new System.Drawing.Point(0, 73);
-            this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(365, 73);
-            this.btnSave.TabIndex = 2;
-            this.btnSave.Text = "이미지 저장하기";
-            this.btnSave.UseVisualStyleBackColor = true;
+            this.groupInfo.Controls.Add(this.lblCropCount);
+            this.groupInfo.Controls.Add(this.lblLineLength);
+            this.groupInfo.Dock = System.Windows.Forms.DockStyle.Top;
+            this.groupInfo.Location = new System.Drawing.Point(0, 328);
+            this.groupInfo.Name = "groupInfo";
+            this.groupInfo.Size = new System.Drawing.Size(367, 100);
+            this.groupInfo.TabIndex = 6;
+            this.groupInfo.TabStop = false;
+            this.groupInfo.Text = "Line Info";
             // 
-            // btnReset
+            // lblCropCount
             // 
-            this.btnReset.Dock = System.Windows.Forms.DockStyle.Top;
-            this.btnReset.Location = new System.Drawing.Point(0, 146);
-            this.btnReset.Name = "btnReset";
-            this.btnReset.Size = new System.Drawing.Size(365, 73);
-            this.btnReset.TabIndex = 3;
-            this.btnReset.Text = "초기화";
-            this.btnReset.UseVisualStyleBackColor = true;
+            this.lblCropCount.AutoSize = true;
+            this.lblCropCount.Location = new System.Drawing.Point(10, 45);
+            this.lblCropCount.Name = "lblCropCount";
+            this.lblCropCount.Size = new System.Drawing.Size(100, 15);
+            this.lblCropCount.TabIndex = 1;
+            this.lblCropCount.Text = "Crop Count: -";
             // 
-            // label1
+            // lblLineLength
             // 
-            this.label1.AutoSize = true;
-            this.label1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.label1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.label1.Location = new System.Drawing.Point(0, 219);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(47, 17);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "label1";
+            this.lblLineLength.AutoSize = true;
+            this.lblLineLength.Location = new System.Drawing.Point(10, 25);
+            this.lblLineLength.Name = "lblLineLength";
+            this.lblLineLength.Size = new System.Drawing.Size(101, 15);
+            this.lblLineLength.TabIndex = 0;
+            this.lblLineLength.Text = "Line Length: -";
             // 
             // groupCrop
             // 
@@ -148,19 +147,10 @@ namespace ImageCropTool
             this.groupCrop.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupCrop.Location = new System.Drawing.Point(0, 236);
             this.groupCrop.Name = "groupCrop";
-            this.groupCrop.Size = new System.Drawing.Size(365, 92);
+            this.groupCrop.Size = new System.Drawing.Size(367, 92);
             this.groupCrop.TabIndex = 5;
             this.groupCrop.TabStop = false;
             this.groupCrop.Text = "Crop 설정";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(10, 25);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(106, 15);
-            this.label2.TabIndex = 0;
-            this.label2.Text = "Crop Size (px)";
             // 
             // numCropSize
             // 
@@ -190,35 +180,46 @@ namespace ImageCropTool
             0});
             this.numCropSize.ValueChanged += new System.EventHandler(this.numCropSize_ValueChanged);
             // 
-            // groupInfo
+            // label2
             // 
-            this.groupInfo.Controls.Add(this.lblCropCount);
-            this.groupInfo.Controls.Add(this.lblLineLength);
-            this.groupInfo.Dock = System.Windows.Forms.DockStyle.Top;
-            this.groupInfo.Location = new System.Drawing.Point(0, 328);
-            this.groupInfo.Name = "groupInfo";
-            this.groupInfo.Size = new System.Drawing.Size(365, 100);
-            this.groupInfo.TabIndex = 6;
-            this.groupInfo.TabStop = false;
-            this.groupInfo.Text = "Line Info";
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(10, 25);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(106, 15);
+            this.label2.TabIndex = 0;
+            this.label2.Text = "Crop Size (px)";
             // 
-            // lblLineLength
+            // label1
             // 
-            this.lblLineLength.AutoSize = true;
-            this.lblLineLength.Location = new System.Drawing.Point(10, 25);
-            this.lblLineLength.Name = "lblLineLength";
-            this.lblLineLength.Size = new System.Drawing.Size(101, 15);
-            this.lblLineLength.TabIndex = 0;
-            this.lblLineLength.Text = "Line Length: -";
+            this.label1.AutoSize = true;
+            this.label1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.label1.Location = new System.Drawing.Point(0, 219);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(47, 17);
+            this.label1.TabIndex = 4;
+            this.label1.Text = "label1";
             // 
-            // lblCropCount
+            // btnReset
             // 
-            this.lblCropCount.AutoSize = true;
-            this.lblCropCount.Location = new System.Drawing.Point(10, 45);
-            this.lblCropCount.Name = "lblCropCount";
-            this.lblCropCount.Size = new System.Drawing.Size(100, 15);
-            this.lblCropCount.TabIndex = 1;
-            this.lblCropCount.Text = "Crop Count: -";
+            this.btnReset.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnReset.Location = new System.Drawing.Point(0, 146);
+            this.btnReset.Name = "btnReset";
+            this.btnReset.Size = new System.Drawing.Size(367, 73);
+            this.btnReset.TabIndex = 3;
+            this.btnReset.Text = "초기화";
+            this.btnReset.UseVisualStyleBackColor = true;
+            // 
+            // btnCropSave
+            // 
+            this.btnCropSave.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnCropSave.Location = new System.Drawing.Point(0, 73);
+            this.btnCropSave.Name = "btnCropSave";
+            this.btnCropSave.Size = new System.Drawing.Size(367, 73);
+            this.btnCropSave.TabIndex = 2;
+            this.btnCropSave.Text = "이미지 저장하기";
+            this.btnCropSave.UseVisualStyleBackColor = true;
+            this.btnCropSave.Click += new System.EventHandler(this.btnCropSave_Click);
             // 
             // MainForm
             // 
@@ -235,11 +236,11 @@ namespace ImageCropTool
             this.splitContainerMain.ResumeLayout(false);
             this.panelRight.ResumeLayout(false);
             this.panelRight.PerformLayout();
+            this.groupInfo.ResumeLayout(false);
+            this.groupInfo.PerformLayout();
             this.groupCrop.ResumeLayout(false);
             this.groupCrop.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numCropSize)).EndInit();
-            this.groupInfo.ResumeLayout(false);
-            this.groupInfo.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -258,7 +259,7 @@ namespace ImageCropTool
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnReset;
-        private System.Windows.Forms.Button btnSave;
+        private System.Windows.Forms.Button btnCropSave;
     }
 }
 
