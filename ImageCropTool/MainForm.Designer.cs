@@ -60,18 +60,17 @@ namespace ImageCropTool
             this.pictureBoxImage.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBoxImage.Location = new System.Drawing.Point(0, 0);
             this.pictureBoxImage.Name = "pictureBoxImage";
-            this.pictureBoxImage.Size = new System.Drawing.Size(716, 653);
+            this.pictureBoxImage.Size = new System.Drawing.Size(712, 653);
             this.pictureBoxImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBoxImage.TabIndex = 0;
             this.pictureBoxImage.TabStop = false;
-            this.pictureBoxImage.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBoxImage_MouseDown);
             // 
             // btnLoadImage
             // 
             this.btnLoadImage.Dock = System.Windows.Forms.DockStyle.Top;
             this.btnLoadImage.Location = new System.Drawing.Point(0, 0);
             this.btnLoadImage.Name = "btnLoadImage";
-            this.btnLoadImage.Size = new System.Drawing.Size(260, 73);
+            this.btnLoadImage.Size = new System.Drawing.Size(264, 73);
             this.btnLoadImage.TabIndex = 1;
             this.btnLoadImage.Text = "이미지 불러오기";
             this.btnLoadImage.UseVisualStyleBackColor = true;
@@ -93,7 +92,7 @@ namespace ImageCropTool
             this.splitContainerMain.Panel2.AccessibleName = "";
             this.splitContainerMain.Panel2.Controls.Add(this.panelRight);
             this.splitContainerMain.Size = new System.Drawing.Size(982, 653);
-            this.splitContainerMain.SplitterDistance = 716;
+            this.splitContainerMain.SplitterDistance = 712;
             this.splitContainerMain.SplitterWidth = 6;
             this.splitContainerMain.TabIndex = 2;
             // 
@@ -109,7 +108,7 @@ namespace ImageCropTool
             this.panelRight.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelRight.Location = new System.Drawing.Point(0, 0);
             this.panelRight.Name = "panelRight";
-            this.panelRight.Size = new System.Drawing.Size(260, 653);
+            this.panelRight.Size = new System.Drawing.Size(264, 653);
             this.panelRight.TabIndex = 0;
             // 
             // groupInfo
@@ -119,7 +118,7 @@ namespace ImageCropTool
             this.groupInfo.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupInfo.Location = new System.Drawing.Point(0, 341);
             this.groupInfo.Name = "groupInfo";
-            this.groupInfo.Size = new System.Drawing.Size(260, 100);
+            this.groupInfo.Size = new System.Drawing.Size(264, 100);
             this.groupInfo.TabIndex = 7;
             this.groupInfo.TabStop = false;
             this.groupInfo.Text = "Line Info";
@@ -159,7 +158,7 @@ namespace ImageCropTool
             this.groupCrop.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupCrop.Location = new System.Drawing.Point(0, 234);
             this.groupCrop.Name = "groupCrop";
-            this.groupCrop.Size = new System.Drawing.Size(260, 92);
+            this.groupCrop.Size = new System.Drawing.Size(264, 92);
             this.groupCrop.TabIndex = 5;
             this.groupCrop.TabStop = false;
             this.groupCrop.Text = "Crop 설정";
@@ -217,7 +216,7 @@ namespace ImageCropTool
             this.btnReset.Dock = System.Windows.Forms.DockStyle.Top;
             this.btnReset.Location = new System.Drawing.Point(0, 146);
             this.btnReset.Name = "btnReset";
-            this.btnReset.Size = new System.Drawing.Size(260, 73);
+            this.btnReset.Size = new System.Drawing.Size(264, 73);
             this.btnReset.TabIndex = 3;
             this.btnReset.Text = "초기화";
             this.btnReset.UseVisualStyleBackColor = true;
@@ -228,7 +227,7 @@ namespace ImageCropTool
             this.btnCropSave.Dock = System.Windows.Forms.DockStyle.Top;
             this.btnCropSave.Location = new System.Drawing.Point(0, 73);
             this.btnCropSave.Name = "btnCropSave";
-            this.btnCropSave.Size = new System.Drawing.Size(260, 73);
+            this.btnCropSave.Size = new System.Drawing.Size(264, 73);
             this.btnCropSave.TabIndex = 2;
             this.btnCropSave.Text = "이미지 저장하기";
             this.btnCropSave.UseVisualStyleBackColor = true;
