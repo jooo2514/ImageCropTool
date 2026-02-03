@@ -43,6 +43,11 @@ namespace ImageCropTool
         private PointF firstOriginalPt;
         private PointF secondOriginalPt;
 
+        private bool showMousePos = false;
+        private PointF mouseOriginalPt;   // 표시할 이미지 좌표
+        private DPoint mouseScreenPt;     // 텍스트를 그릴 화면 위치
+
+
         // 크롭 박스 기준점
         private enum CropAnchor
         {
@@ -80,18 +85,18 @@ namespace ImageCropTool
             };
 
             pictureBoxImage.SizeMode = PictureBoxSizeMode.Normal;
-            pictureBoxImage.Paint += pictureBoxImage_Paint;
-            pictureBoxImage.MouseDown += pictureBoxImage_MouseDown;
-            pictureBoxImage.MouseMove += pictureBoxImage_MouseMove;
-            pictureBoxImage.MouseUp += pictureBoxImage_MouseUp;
-            pictureBoxImage.MouseWheel += pictureBoxImage_MouseWheel;
+            pictureBoxImage.Paint += PictureBoxImage_Paint;
+            pictureBoxImage.MouseDown += PictureBoxImage_MouseDown;
+            pictureBoxImage.MouseMove += PictureBoxImage_MouseMove;
+            pictureBoxImage.MouseUp += PictureBoxImage_MouseUp;
+            pictureBoxImage.MouseWheel += PictureBoxImage_MouseWheel;
             pictureBoxImage.MouseEnter += (s, e) => pictureBoxImage.Focus();
 
             numCropSize.Value = DefaultCropSize;
         }
 
         // =====================================================
-        // 초기화 함수들
+        // 초기화
         // =====================================================
         private void ResetView()   // 이미지 출력 초기화
         {
@@ -101,7 +106,7 @@ namespace ImageCropTool
             {
                 viewOffset = new PointF(    // 이미지 정중앙에 오게
                     (pictureBoxImage.Width - viewBitmap.Width) / 2f,
-                    (pictureBoxImage.Height - viewBitmap.Height) / 2f  
+                    (pictureBoxImage.Height - viewBitmap.Height) / 2f
                 );
             }
             else
@@ -110,7 +115,7 @@ namespace ImageCropTool
             }
         }
 
-        private void btnReset_Click(object sender, EventArgs e) => ResetAll();
+        private void BtnReset_Click(object sender, EventArgs e) => ResetAll();
         private void ResetAll()
         {
             ClearPoints();
@@ -129,7 +134,7 @@ namespace ImageCropTool
             pictureBoxImage.Invalidate();
         }
 
-        private void numCropSize_ValueChanged(object sender, EventArgs e)
+        private void NumCropSize_ValueChanged(object sender, EventArgs e)
         {
             if (clickState != ClickState.TwoPoints)
                 return;
@@ -141,7 +146,7 @@ namespace ImageCropTool
         // =====================================================
         // 이미지 로딩
         // =====================================================
-        private async void btnLoadImage_Click(object sender, EventArgs e)
+        private async void BtnLoadImage_Click(object sender, EventArgs e)
         {
             OpenFileDialog dlg = new OpenFileDialog { Filter = "Image Files|*.bmp;*.jpg;*.png" };
             if (dlg.ShowDialog() != DialogResult.OK)
@@ -189,11 +194,23 @@ namespace ImageCropTool
                 pictureBoxImage.Invalidate();
             }
         }
+        private Bitmap ResizeToFit(Bitmap src, int maxW, int maxH)
+        {
+            double scale = Math.Min((double)maxW / src.Width, (double)maxH / src.Height);
+            Bitmap dst = new Bitmap((int)(src.Width * scale), (int)(src.Height * scale));
+
+            using (Graphics g = Graphics.FromImage(dst))
+            {
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.DrawImage(src, 0, 0, dst.Width, dst.Height);
+            }
+            return dst;
+        }
 
         // =====================================================
         // 마우스 이벤트
         // =====================================================
-        private void pictureBoxImage_MouseDown(object sender, MouseEventArgs e)
+        private void PictureBoxImage_MouseDown(object sender, MouseEventArgs e)
         {
             if (viewBitmap == null)
                 return;
@@ -221,11 +238,12 @@ namespace ImageCropTool
                 case MouseButtons.Left:
 
                     // 기존 점 히트 테스트 (View 좌표 기준)
-                    if (clickState != ClickState.None) 
+                    if (clickState != ClickState.None)
                     {
-                        DPoint firstView = OriginalToScreen(firstOriginalPt);
+                        PointF first_viewPt = OriginalToView(firstOriginalPt);
+                        DPoint first_screenPt = ViewToScreen(first_viewPt);
 
-                        if (IsHit(e.Location, firstView))
+                        if (IsHit(e.Location, first_screenPt))
                         {
                             isDraggingPoint = true;
                             draggingFirstPoint = true;
@@ -234,10 +252,11 @@ namespace ImageCropTool
 
                         if (clickState == ClickState.TwoPoints)
                         {
-                            DPoint secondView = OriginalToScreen(secondOriginalPt);
+                            PointF second_viewPt = OriginalToView(secondOriginalPt);
+                            DPoint second_screenPt = ViewToScreen(second_viewPt);
 
-                            if (IsHit(e.Location, secondView))
-                            { 
+                            if (IsHit(e.Location, second_screenPt))
+                            {
                                 isDraggingPoint = true;
                                 draggingSecondPoint = true;
                                 return;
@@ -246,16 +265,17 @@ namespace ImageCropTool
                     }
 
                     // 점 새로 찍기
-                    PointF pt = ViewToOriginal(e.Location);
+                    PointF mouseViewPt = ScreenToView(e.Location);
+                    PointF mouseOriginalPt = ViewToOriginal(mouseViewPt);
 
                     if (clickState == ClickState.None)
                     {
-                        firstOriginalPt = pt;
+                        firstOriginalPt = mouseOriginalPt;
                         clickState = ClickState.OnePoint;
                     }
                     else if (clickState == ClickState.OnePoint)
                     {
-                        secondOriginalPt = pt;
+                        secondOriginalPt = mouseOriginalPt;
                         clickState = ClickState.TwoPoints;
                         UpdateLineInfo();
                     }
@@ -268,7 +288,7 @@ namespace ImageCropTool
             }
         }
 
-        private void pictureBoxImage_MouseMove(object sender, MouseEventArgs e)
+        private void PictureBoxImage_MouseMove(object sender, MouseEventArgs e)
         {
             // 이미지 이동(패닝)
             if (isPanning)
@@ -283,7 +303,8 @@ namespace ImageCropTool
             // 점 위치 이동(드래그)
             if (isDraggingPoint)
             {
-                PointF originalPt = ViewToOriginal(e.Location);
+                PointF view_Pt = ScreenToView(e.Location);
+                PointF originalPt = ViewToOriginal(view_Pt);
 
                 if (draggingFirstPoint)
                     firstOriginalPt = originalPt;
@@ -294,17 +315,38 @@ namespace ImageCropTool
                 UpdateLineInfo();
                 pictureBoxImage.Invalidate();
             }
+
+            if (viewBitmap == null)
+            {
+                showMousePos = false;
+                return;
+            }
+
+            if (!IsInsideImageScreen(e.Location))
+            {
+                showMousePos = false;
+                pictureBoxImage.Invalidate();
+                return;
+            }
+
+            mouseScreenPt = e.Location;
+
+            PointF viewPt = ScreenToView(e.Location);
+            mouseOriginalPt = ViewToOriginal(viewPt);
+
+            showMousePos = true;
+            pictureBoxImage.Invalidate();   // 다시 그리게 요청
         }
 
 
-        private void pictureBoxImage_MouseUp(object sender, MouseEventArgs e)
+        private void PictureBoxImage_MouseUp(object sender, MouseEventArgs e)
         {
             isPanning = false;
             isDraggingPoint = false;
             draggingFirstPoint = false;
             draggingSecondPoint = false;
         }
-        private void pictureBoxImage_MouseWheel(object sender, MouseEventArgs e)
+        private void PictureBoxImage_MouseWheel(object sender, MouseEventArgs e)
         {
             float oldScale = viewScale;   // 확대 전 스케일 저장
 
@@ -320,7 +362,7 @@ namespace ImageCropTool
         // =====================================================
         // Paint(점,선,가이드박스)
         // =====================================================
-        private void pictureBoxImage_Paint(object sender, PaintEventArgs e)
+        private void PictureBoxImage_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             g.Clear(Color.Black);   // 이전 화면 초기화
@@ -342,8 +384,47 @@ namespace ImageCropTool
 
             DrawPointsAndLine(g);                               // 점, 선 그리기
             DrawGuideBoxes(g);                                  // 가이드 박스 그리기
-                
+
             g.ResetTransform();                                 // 좌표계 원복
+
+            if (showMousePos)
+            {
+                DrawMousePositionOverlay(g);
+            }
+
+        }
+        private void DrawMousePositionOverlay(Graphics g)
+        {
+            string text = $"({(int)mouseOriginalPt.X}, {(int)mouseOriginalPt.Y})";
+
+            using (Font font = new Font("맑은 고딕", 9, FontStyle.Bold))
+            {
+                SizeF textSize = g.MeasureString(text, font);
+
+                int padding = 4;
+                float x = mouseScreenPt.X + 12;
+                float y = mouseScreenPt.Y + 12;
+
+                RectangleF bgRect = new RectangleF(
+                    x,
+                    y,
+                    textSize.Width + padding * 2,
+                    textSize.Height + padding * 2
+                );
+
+                // 반투명 배경
+                using (Brush bg = new SolidBrush(Color.FromArgb(180, 0, 0, 0)))
+                    g.FillRectangle(bg, bgRect);
+
+                // 텍스트
+                g.DrawString(
+                    text,
+                    font,
+                    Brushes.DeepSkyBlue,
+                    x + padding,
+                    y + padding
+                );
+            }
         }
 
         private void DrawPointsAndLine(Graphics g)   // 점&선 그리기
@@ -396,7 +477,7 @@ namespace ImageCropTool
         /* =========================================================
         *  크롭 저장
          * ========================================================= */
-        private void btnCropSave_Click(object sender, EventArgs e) => CropAndSaveAll();
+        private void BtnCropSave_Click(object sender, EventArgs e) => CropAndSaveAll();
 
         private void CropAndSaveAll()
         {
@@ -420,24 +501,6 @@ namespace ImageCropTool
             }
 
             MessageBox.Show($"저장 완료: {index - 1}개");
-        }
-
-
-
-        // =====================================================
-        // Logic
-        // =====================================================
-        private void UpdateLineInfo()
-        {
-            float dx = secondOriginalPt.X - firstOriginalPt.X;
-            float dy = secondOriginalPt.Y - firstOriginalPt.Y;
-            lineLength = (float)Math.Sqrt(dx * dx + dy * dy);
-
-            int cropSize = (int)numCropSize.Value;
-            cropCount = (int)Math.Floor((lineLength + cropSize / 2f) / cropSize) + 1;
-
-            lblLineLength.Text = $"Line Length: {lineLength:F1}px";
-            lblCropCount.Text = $"Crop Count: {cropCount}";
         }
 
         /* =========================================================
@@ -479,7 +542,6 @@ namespace ImageCropTool
             }
         }
 
-
         private List<RectangleF> CalculateCropBoxesOriginal()
         {
             List<RectangleF> boxes = new List<RectangleF>();
@@ -515,65 +577,55 @@ namespace ImageCropTool
 
 
         // =====================================================
-        // Utils
+        // 좌표 관련
         // =====================================================
-        private Bitmap ResizeToFit(Bitmap src, int maxW, int maxH)
+        private PointF ViewToOriginal(PointF viewPt)
         {
-            double scale = Math.Min((double)maxW / src.Width, (double)maxH / src.Height);
-            Bitmap dst = new Bitmap((int)(src.Width * scale), (int)(src.Height * scale));
+            float sx = (float)originalBitmap.Width / viewBitmap.Width;
+            float sy = (float)originalBitmap.Height / viewBitmap.Height;
 
-            using (Graphics g = Graphics.FromImage(dst))
-            {
-                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                g.DrawImage(src, 0, 0, dst.Width, dst.Height);
-            }
-            return dst;
-        }
-
-        private PointF ViewToOriginal(DPoint viewPt)
-        {
-            float vx = (viewPt.X - viewOffset.X) / viewScale;
-            float vy = (viewPt.Y - viewOffset.Y) / viewScale;
-
-            float scaleX = (float)originalBitmap.Width / viewBitmap.Width;
-            float scaleY = (float)originalBitmap.Height / viewBitmap.Height;
-
-            return new PointF(vx * scaleX, vy * scaleY);
+            return new PointF(
+                viewPt.X * sx,
+                viewPt.Y * sy
+            );
         }
 
         private PointF OriginalToView(PointF originalPt)
         {
-            float scaleX = (float)viewBitmap.Width / originalBitmap.Width;
-            float scaleY = (float)viewBitmap.Height / originalBitmap.Height;
+            float sx = (float)viewBitmap.Width / originalBitmap.Width;
+            float sy = (float)viewBitmap.Height / originalBitmap.Height;
 
             return new PointF(
-                originalPt.X * scaleX,
-                originalPt.Y * scaleY
+                originalPt.X * sx,
+                originalPt.Y * sy
             );
         }
+
+        private PointF ScreenToView(DPoint screenPt)
+        {
+            return new PointF(
+                (screenPt.X - viewOffset.X) / viewScale,
+                (screenPt.Y - viewOffset.Y) / viewScale
+            );
+        }
+
+        private DPoint ViewToScreen(PointF viewPt)
+        {
+            float x = viewPt.X * viewScale + viewOffset.X;
+            float y = viewPt.Y * viewScale + viewOffset.Y;
+
+            return new DPoint(
+                (int)Math.Round(x),
+                (int)Math.Round(y)
+            );
+        }
+
         private bool IsHit(DPoint mousePt, DPoint targetPt)
         {
             return Math.Abs(mousePt.X - targetPt.X) <= HitRadius &&
                    Math.Abs(mousePt.Y - targetPt.Y) <= HitRadius;
         }
-        private DPoint OriginalToScreen(PointF originalPt)
-        {
-            // original → viewBitmap
-            float sx = (float)viewBitmap.Width / originalBitmap.Width;
-            float sy = (float)viewBitmap.Height / originalBitmap.Height;
 
-            float vx = originalPt.X * sx;
-            float vy = originalPt.Y * sy;
-
-            // viewBitmap → screen (zoom + pan)
-            float screenX = vx * viewScale + viewOffset.X;
-            float screenY = vy * viewScale + viewOffset.Y;
-
-            return new DPoint(
-                (int)Math.Round(screenX),
-                (int)Math.Round(screenY)
-            );
-        }
         private bool IsInsideImageScreen(DPoint screenPt)   // 이미지 영역 판별
         {
             if (viewBitmap == null)
@@ -588,6 +640,23 @@ namespace ImageCropTool
 
             return rect.Contains(screenPt);
         }
+
+        // =====================================================
+        // UI 관련
+        // =====================================================
+        private void UpdateLineInfo()
+        {
+            float dx = secondOriginalPt.X - firstOriginalPt.X;
+            float dy = secondOriginalPt.Y - firstOriginalPt.Y;
+            lineLength = (float)Math.Sqrt(dx * dx + dy * dy);
+
+            int cropSize = (int)numCropSize.Value;
+            cropCount = (int)Math.Floor((lineLength + cropSize / 2f) / cropSize) + 1;
+
+            lblLineLength.Text = $"Line Length: {lineLength:F1}px";
+            lblCropCount.Text = $"Crop Count: {cropCount}";
+        }
+
         private void DrawLoadingSpinner(Graphics g)
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;

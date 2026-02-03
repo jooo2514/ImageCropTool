@@ -73,7 +73,7 @@ namespace ImageCropTool
             this.btnLoadImage.TabIndex = 1;
             this.btnLoadImage.Text = "이미지 불러오기";
             this.btnLoadImage.UseVisualStyleBackColor = true;
-            this.btnLoadImage.Click += new System.EventHandler(this.btnLoadImage_Click);
+            this.btnLoadImage.Click += new System.EventHandler(this.BtnLoadImage_Click);
             // 
             // splitContainerMain
             // 
@@ -188,7 +188,7 @@ namespace ImageCropTool
             0,
             0,
             0});
-            this.numCropSize.ValueChanged += new System.EventHandler(this.numCropSize_ValueChanged);
+            this.numCropSize.ValueChanged += new System.EventHandler(this.NumCropSize_ValueChanged);
             // 
             // label2
             // 
@@ -219,7 +219,7 @@ namespace ImageCropTool
             this.btnReset.TabIndex = 3;
             this.btnReset.Text = "초기화";
             this.btnReset.UseVisualStyleBackColor = true;
-            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
+            this.btnReset.Click += new System.EventHandler(this.BtnReset_Click);
             // 
             // btnCropSave
             // 
@@ -230,7 +230,7 @@ namespace ImageCropTool
             this.btnCropSave.TabIndex = 2;
             this.btnCropSave.Text = "이미지 저장하기";
             this.btnCropSave.UseVisualStyleBackColor = true;
-            this.btnCropSave.Click += new System.EventHandler(this.btnCropSave_Click);
+            this.btnCropSave.Click += new System.EventHandler(this.BtnCropSave_Click);
             // 
             // MainForm
             // 
