@@ -35,10 +35,6 @@ namespace ImageCropTool
         private bool draggingSecondPoint = false;
         private const int HitRadius = 8;
 
-        // 잘못된 클릭 안내 중복 방지
-       // private bool invalidClickNotified = false;
-
-
         // 클릭 상태 머신
         private enum ClickState { None, OnePoint, TwoPoints }
         private ClickState clickState = ClickState.None;
@@ -202,15 +198,30 @@ namespace ImageCropTool
             if (viewBitmap == null)
                 return;
 
+            //  이미지 영역 밖 클릭 차단
+            if (!IsInsideImageScreen(e.Location))
+            {
+                MessageBox.Show(
+                    "이미지 영역 안을 클릭하세요.",
+                    "잘못된 클릭",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+
             switch (e.Button)
             {
                 case MouseButtons.Right:  //  우클릭 드래그 이미지 이동
+
                     isPanning = true;
                     lastMousePt = e.Location;
                     return;
 
-                case MouseButtons.Left:   
-                    if (clickState != ClickState.None) // 기존 점 히트 테스트 (View 좌표 기준)
+                case MouseButtons.Left:
+
+                    // 기존 점 히트 테스트 (View 좌표 기준)
+                    if (clickState != ClickState.None) 
                     {
                         DPoint firstView = OriginalToScreen(firstOriginalPt);
 
@@ -259,24 +270,24 @@ namespace ImageCropTool
 
         private void pictureBoxImage_MouseMove(object sender, MouseEventArgs e)
         {
-            // 팬
+            // 이미지 이동(패닝)
             if (isPanning)
             {
                 viewOffset.X += e.X - lastMousePt.X;
-                viewOffset.Y += e.Y - lastMousePt.Y;
-                lastMousePt = e.Location;
+                viewOffset.Y += e.Y - lastMousePt.Y;    // 이동 거리 계산
+                lastMousePt = e.Location;               // 기준점 갱신
                 pictureBoxImage.Invalidate();
                 return;
             }
 
-            // 점 드래그 이동
+            // 점 위치 이동(드래그)
             if (isDraggingPoint)
             {
                 PointF originalPt = ViewToOriginal(e.Location);
 
                 if (draggingFirstPoint)
-
                     firstOriginalPt = originalPt;
+
                 else if (draggingSecondPoint)
                     secondOriginalPt = originalPt;
 
@@ -289,19 +300,18 @@ namespace ImageCropTool
         private void pictureBoxImage_MouseUp(object sender, MouseEventArgs e)
         {
             isPanning = false;
-
             isDraggingPoint = false;
             draggingFirstPoint = false;
             draggingSecondPoint = false;
         }
         private void pictureBoxImage_MouseWheel(object sender, MouseEventArgs e)
         {
-            float oldScale = viewScale;
+            float oldScale = viewScale;   // 확대 전 스케일 저장
 
-            viewScale = e.Delta > 0 ? viewScale * ZoomStep : viewScale / ZoomStep;
-            viewScale = Math.Max(MinZoom, Math.Min(MaxZoom, viewScale));
+            viewScale = e.Delta > 0 ? viewScale * ZoomStep : viewScale / ZoomStep;   // 휠 한칸당 10% 확대/축소
+            viewScale = Math.Max(MinZoom, Math.Min(MaxZoom, viewScale));  // 줌 한계 제한
 
-            viewOffset.X = e.X - (e.X - viewOffset.X) * (viewScale / oldScale);
+            viewOffset.X = e.X - (e.X - viewOffset.X) * (viewScale / oldScale);   // 마우스 위치 - 새 거리
             viewOffset.Y = e.Y - (e.Y - viewOffset.Y) * (viewScale / oldScale);
 
             pictureBoxImage.Invalidate();
@@ -546,14 +556,6 @@ namespace ImageCropTool
             return Math.Abs(mousePt.X - targetPt.X) <= HitRadius &&
                    Math.Abs(mousePt.Y - targetPt.Y) <= HitRadius;
         }
-
-        private DPoint PointFToDPoint(PointF pt)
-        {
-            return new DPoint(
-                (int)Math.Round(pt.X),
-                (int)Math.Round(pt.Y)
-            );
-        }
         private DPoint OriginalToScreen(PointF originalPt)
         {
             // original → viewBitmap
@@ -572,8 +574,20 @@ namespace ImageCropTool
                 (int)Math.Round(screenY)
             );
         }
+        private bool IsInsideImageScreen(DPoint screenPt)   // 이미지 영역 판별
+        {
+            if (viewBitmap == null)
+                return false;
 
+            RectangleF rect = new RectangleF(
+                viewOffset.X,
+                viewOffset.Y,
+                viewBitmap.Width * viewScale,
+                viewBitmap.Height * viewScale
+            );
 
+            return rect.Contains(screenPt);
+        }
         private void DrawLoadingSpinner(Graphics g)
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
