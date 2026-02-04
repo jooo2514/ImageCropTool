@@ -61,9 +61,9 @@ namespace ImageCropTool
 
         // View Transform (Zoom & Pan)
         private float viewScale = 1.0f;                 // 줌 배율
-        private PointF viewOffset = new PointF(0, 0);   // 팬 이동량
+        private PointF viewOffset = new PointF(0, 0);   // 팬 이동량, 이미지 시작 위치
 
-        private const float ZoomStep = 1.1f;
+        private const float ZoomStep = 1.1f;    // 휠 한칸에 10%씩 변화
         private const float MinZoom = 0.2f;
         private const float MaxZoom = 5.0f;
 
@@ -90,7 +90,7 @@ namespace ImageCropTool
             pictureBoxImage.MouseMove += PictureBoxImage_MouseMove;
             pictureBoxImage.MouseUp += PictureBoxImage_MouseUp;
             pictureBoxImage.MouseWheel += PictureBoxImage_MouseWheel;
-            pictureBoxImage.MouseEnter += (s, e) => pictureBoxImage.Focus();
+            //pictureBoxImage.MouseEnter += (s, e) => pictureBoxImage.Focus();   // 휠 포커스 확보
 
             numCropSize.Value = DefaultCropSize;
         }
@@ -196,12 +196,12 @@ namespace ImageCropTool
         }
         private Bitmap ResizeToFit(Bitmap src, int maxW, int maxH)
         {
-            double scale = Math.Min((double)maxW / src.Width, (double)maxH / src.Height);
+            double scale = Math.Min((double)maxW / src.Width, (double)maxH / src.Height);   // 비율 더 작은걸루
             Bitmap dst = new Bitmap((int)(src.Width * scale), (int)(src.Height * scale));
 
             using (Graphics g = Graphics.FromImage(dst))
             {
-                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;   // 보간 방식 설정(화질 최우선)
                 g.DrawImage(src, 0, 0, dst.Width, dst.Height);
             }
             return dst;
@@ -295,7 +295,7 @@ namespace ImageCropTool
             {
                 viewOffset.X += e.X - lastMousePt.X;
                 viewOffset.Y += e.Y - lastMousePt.Y;    // 이동 거리 계산
-                lastMousePt = e.Location;               // 기준점 갱신
+                lastMousePt = e.Location;               // (이동한 위치로) 기준점 갱신
                 pictureBoxImage.Invalidate();
                 return;
             }
@@ -316,13 +316,14 @@ namespace ImageCropTool
                 pictureBoxImage.Invalidate();
             }
 
+            // 마우스 포지션 좌표
             if (viewBitmap == null)
             {
-                showMousePos = false;
+                showMousePos = false;   
                 return;
             }
 
-            if (!IsInsideImageScreen(e.Location))
+            if (!IsInsideImageScreen(e.Location))  // 이미지 영역 밖이면
             {
                 showMousePos = false;
                 pictureBoxImage.Invalidate();
@@ -332,7 +333,7 @@ namespace ImageCropTool
             mouseScreenPt = e.Location;
 
             PointF viewPt = ScreenToView(e.Location);
-            mouseOriginalPt = ViewToOriginal(viewPt);
+            mouseOriginalPt = ViewToOriginal(viewPt);   // 이미지 좌표를 출력하기 위해
 
             showMousePos = true;
             pictureBoxImage.Invalidate();   // 다시 그리게 요청
@@ -353,7 +354,8 @@ namespace ImageCropTool
             viewScale = e.Delta > 0 ? viewScale * ZoomStep : viewScale / ZoomStep;   // 휠 한칸당 10% 확대/축소
             viewScale = Math.Max(MinZoom, Math.Min(MaxZoom, viewScale));  // 줌 한계 제한
 
-            viewOffset.X = e.X - (e.X - viewOffset.X) * (viewScale / oldScale);   // 마우스 위치 - 새 거리
+            // 마우스 위치를 기준으로 이미지 다시 배치
+            viewOffset.X = e.X - (e.X - viewOffset.X) * (viewScale / oldScale);   // e.X - (기존 거리 × 확대비율)
             viewOffset.Y = e.Y - (e.Y - viewOffset.Y) * (viewScale / oldScale);
 
             pictureBoxImage.Invalidate();
@@ -366,7 +368,7 @@ namespace ImageCropTool
         {
             Graphics g = e.Graphics;
             g.Clear(Color.Black);   // 이전 화면 초기화
-            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.SmoothingMode = SmoothingMode.AntiAlias;   // 선,원,텍스트 부드럽게
 
             if (isImageLoading)  // 로딩중
             {
@@ -377,7 +379,7 @@ namespace ImageCropTool
             if (viewBitmap == null)
                 return;
 
-            g.TranslateTransform(viewOffset.X, viewOffset.Y);   // 좌표계 이동(중앙정렬, 드래그 이동)
+            g.TranslateTransform(viewOffset.X, viewOffset.Y);   // 좌표계 이동(중앙정렬, 드래그 이동) 이미지가 시작하는 위치
             g.ScaleTransform(viewScale, viewScale);             // 좌표계 스케일 변경(확대/축소 적용)
 
             g.DrawImage(viewBitmap, 0, 0);                      // 이미지 그리기
@@ -393,7 +395,7 @@ namespace ImageCropTool
             }
 
         }
-        private void DrawMousePositionOverlay(Graphics g)
+        private void DrawMousePositionOverlay(Graphics g)   // 마우스 포지션 점좌표 그리기
         {
             string text = $"({(int)mouseOriginalPt.X}, {(int)mouseOriginalPt.Y})";
 
@@ -401,11 +403,11 @@ namespace ImageCropTool
             {
                 SizeF textSize = g.MeasureString(text, font);
 
-                int padding = 4;
-                float x = mouseScreenPt.X + 12;
+                int padding = 4;  // 텍스트와 배경 사이 여백
+                float x = mouseScreenPt.X + 12;   // 마우스 커서랑 겹치지 않게
                 float y = mouseScreenPt.Y + 12;
 
-                RectangleF bgRect = new RectangleF(
+                RectangleF bgRect = new RectangleF(   // 배경 사각형 크기
                     x,
                     y,
                     textSize.Width + padding * 2,
@@ -475,35 +477,6 @@ namespace ImageCropTool
         }
 
         /* =========================================================
-        *  크롭 저장
-         * ========================================================= */
-        private void BtnCropSave_Click(object sender, EventArgs e) => CropAndSaveAll();
-
-        private void CropAndSaveAll()
-        {
-            var boxes = CalculateCropBoxesOriginal();
-            if (boxes.Count == 0)
-                return;
-
-            string folder = Path.Combine(Application.StartupPath, "Crops", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
-            Directory.CreateDirectory(folder);
-
-            int index = 1;
-            foreach (var box in boxes)
-            {
-                int x = (int)Math.Max(0, Math.Min(box.X, originalMat.Width - box.Width));    // 유효한 좌표
-                int y = (int)Math.Max(0, Math.Min(box.Y, originalMat.Height - box.Height));  // 경계 보호
-
-                using (Mat cropped = new Mat(originalMat, new Rect(x, y, (int)box.Width, (int)box.Height)))
-                {
-                    Cv2.ImWrite(Path.Combine(folder, $"crop_{index++:D3}.png"), cropped);
-                }
-            }
-
-            MessageBox.Show($"저장 완료: {index - 1}개");
-        }
-
-        /* =========================================================
         *  Anchor & 박스 계산
         * ========================================================= */
         private PointF AnchorToBox(PointF anchor, float size)
@@ -542,7 +515,7 @@ namespace ImageCropTool
             }
         }
 
-        private List<RectangleF> CalculateCropBoxesOriginal()
+        private List<RectangleF> CalculateCropBoxesOriginal()  // 크롭할 사각형 목록 만듬
         {
             List<RectangleF> boxes = new List<RectangleF>();
             if (clickState != ClickState.TwoPoints)
@@ -550,14 +523,14 @@ namespace ImageCropTool
 
             int cropSize = (int)numCropSize.Value;
 
-            float dx = secondOriginalPt.X - firstOriginalPt.X;
+            float dx = secondOriginalPt.X - firstOriginalPt.X;    // 방향백터
             float dy = secondOriginalPt.Y - firstOriginalPt.Y;
-            float length = (float)Math.Sqrt(dx * dx + dy * dy);
+            float length = (float)Math.Sqrt(dx * dx + dy * dy);   // 선길이
             if (length < 1f)
                 return boxes;
 
             float ux = dx / length;
-            float uy = dy / length;
+            float uy = dy / length;   // 단위방향
 
             for (float dist = 0; dist <= length + cropSize / 2f; dist += cropSize)
             {
@@ -566,7 +539,7 @@ namespace ImageCropTool
                     firstOriginalPt.X + ux * dist,
                     firstOriginalPt.Y + uy * dist);
 
-                // Anchor 정책 적용 (여기가 핵심)
+                // 기준점(좌상단, 우상단, 센터 등) 어딘지 구함
                 PointF tl = AnchorToBox(anchor, cropSize);
 
                 boxes.Add(new RectangleF(tl.X, tl.Y, cropSize, cropSize));
@@ -575,6 +548,34 @@ namespace ImageCropTool
             return boxes;
         }
 
+        /* =========================================================
+        *  크롭 저장
+         * ========================================================= */
+        private void BtnCropSave_Click(object sender, EventArgs e) => CropAndSaveAll();
+
+        private void CropAndSaveAll()
+        {
+            var boxes = CalculateCropBoxesOriginal();
+            if (boxes.Count == 0)
+                return;
+
+            string folder = Path.Combine(Application.StartupPath, "Crops", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+            Directory.CreateDirectory(folder);
+
+            int index = 1;
+            foreach (var box in boxes)
+            {
+                int x = (int)Math.Max(0, Math.Min(box.X, originalMat.Width - box.Width));    // 유효한 좌표
+                int y = (int)Math.Max(0, Math.Min(box.Y, originalMat.Height - box.Height));  // 경계 보호
+
+                using (Mat cropped = new Mat(originalMat, new Rect(x, y, (int)box.Width, (int)box.Height)))
+                {
+                    Cv2.ImWrite(Path.Combine(folder, $"crop_{index++:D3}.png"), cropped);
+                }
+            }
+
+            MessageBox.Show($"저장 완료: {index - 1}개");
+        }
 
         // =====================================================
         // 좌표 관련
