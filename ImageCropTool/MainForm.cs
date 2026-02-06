@@ -35,6 +35,8 @@ namespace ImageCropTool
         private Bitmap originalBitmap;
         private Mat originalMat;
 
+        private string imageColorInfoText = string.Empty;
+
         /* =========================================================
          *  Loading Spinner
          * ========================================================= */
@@ -212,6 +214,14 @@ namespace ImageCropTool
 
                     originalBitmap = new Bitmap(dlg.FileName);
                     originalMat = BitmapConverter.ToMat(originalBitmap);  // 연산용
+
+                    // 이미지 타입 판별
+                    if (originalMat.Channels() == 1)
+                        imageColorInfoText = "Grayscale (CV_8UC1)";
+                    else if (originalMat.Channels() == 3)
+                        imageColorInfoText = "Color (CV_8UC3)";
+                    else
+                        imageColorInfoText = $"Channels: {originalMat.Channels()}";
                 });
 
                 ResetAll();
@@ -365,8 +375,7 @@ namespace ImageCropTool
                 return;
 
             mouseScreenPt = e.Location;   // 화면에 좌표 표시용
-            mouseOriginalPt = ViewToOriginal(ScreenToView(e.Location));  // hover 판정용, preview 대상 결정용
-
+            mouseOriginalPt = ViewToOriginal(ScreenToView(e.Location));  // hover 판정용, preview 대상 결정
             UpdateHoverCropBox(mouseOriginalPt);  // hover 박스 결정, highlight 갱신, preview 갱신
             pictureBoxImage.Invalidate();
         }
@@ -419,6 +428,7 @@ namespace ImageCropTool
 
             g.ResetTransform();                                  // 좌표계 원복
             DrawMousePositionOverlay(g);                         // 마우스 포지션
+            DrawImageTypeOverlay(g);
         }
 
         /* =========================================================
@@ -440,13 +450,45 @@ namespace ImageCropTool
                     size.Height + 8
                 );
                 // 반투명 배경
-                using (Brush b = new SolidBrush(Color.FromArgb(180, 0, 0, 0)))
-                    g.FillRectangle(b, bg);
+                //using (Brush b = new SolidBrush(Color.FromArgb(180, 0, 0, 0)))
+                //    g.FillRectangle(b, bg);
 
                 g.DrawString(text, font, Brushes.DeepSkyBlue, x + 4, y + 4);    // 텍스트
             }
         }
 
+        private void DrawImageTypeOverlay(Graphics g)
+        {
+            if (string.IsNullOrEmpty(imageColorInfoText))
+                return;
+
+            using (Font font = new Font("맑은 고딕", 9, FontStyle.Bold))
+            {
+                SizeF size = g.MeasureString(imageColorInfoText, font);
+
+                float x = 8;
+                float y = 8;
+
+                RectangleF bg = new RectangleF(
+                    x,
+                    y,
+                    size.Width + 8,
+                    size.Height + 8
+                    );
+
+                // 반투명 배경
+                using (Brush bgBrush = new SolidBrush(Color.FromArgb(160, 0, 0, 0)))
+                    g.FillRectangle(bgBrush, bg);
+
+                g.DrawString(
+                    imageColorInfoText,
+                    font,
+                    Brushes.Orange,
+                    x + 4,
+                    y + 3
+                    );
+            }
+        }
         private void DrawPointsAndLine(Graphics g)    // 점&선 그리기
         {
             using (Pen pen = new Pen(Color.Red, 2 / viewScale))   // 확대/축소 해도 같은 두깨로 역보정
@@ -539,7 +581,7 @@ namespace ImageCropTool
             }
         }
 
-        private PointF AnchorToBox(PointF anchor, float size)
+        private PointF AnchorToBox(PointF anchor, float size)  // 기준점 계산
         {
             switch (cropAnchor)
             {
@@ -558,7 +600,7 @@ namespace ImageCropTool
             }
         }
 
-        private void UpdateHoverCropBox(PointF originalPt)
+        private void UpdateHoverCropBox(PointF originalPt)  // Hover 박스 판별 함수
         {
             hoveredBox = null;    // 초기화
 
