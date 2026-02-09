@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
+﻿using System.Drawing;
 
 namespace ImageCropTool
 {
-    class CropBoxInfo
+    public class CropBoxInfo
     {
-        public Rectangle EffectiveRect;  // 실제 crop 영역(original 좌표)
-        public bool IsHovered;           // 마우스가 위에 올라가 있는지
+        public Rectangle Rect;
+        public bool IsHovered;
+        public GuideLineInfo OwnerLine;
+        public GuideLineInfo ParentLine;
+
+        public CropBoxInfo()
+        {
+            Rect = Rectangle.Empty;
+            IsHovered = false;
+        }
     }
 }
