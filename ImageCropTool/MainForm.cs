@@ -285,6 +285,8 @@ namespace ImageCropTool
                 if (draggingStart) dragLine.StartPt = originalPt;
                 if (draggingEnd) dragLine.EndPt = originalPt;
                 CalculateCropBoxes(dragLine);
+
+                UpdateLineInfo(dragLine);
                 pictureBoxImage.Invalidate();
                 return;
             }
@@ -471,101 +473,6 @@ namespace ImageCropTool
         }
 
 
-
-        /* ================= Preview ================= */
-
-        private void UpdateHoverPreview(PointF originalPt)
-        {
-            hoveredBox = null;
-            hoveredLine = null;
-
-            foreach (var pair in cropBoxMap)
-            {
-                GuideLineInfo line = pair.Key;
-                List<CropBoxInfo> boxes = pair.Value;
-
-                foreach (var box in boxes)
-                {
-                    if (box.Rect.Contains(
-                        (int)originalPt.X,
-                        (int)originalPt.Y))
-                    {
-                        hoveredBox = box;
-                        hoveredLine = line;
-                        break;
-                    }
-                }
-                if (hoveredBox != null)
-                    break;
-            }
-
-            // hover 상태 갱신
-            foreach (var pair in cropBoxMap)
-                foreach (var box in pair.Value)
-                    box.IsHovered = (box == hoveredBox);
-
-            if (hoveredBox != null)
-            {
-                ShowCropPreview(hoveredBox);
-                UpdateLineInfo(hoveredLine);   // ⭐ 여기!!
-            }
-            else
-            {
-                ClearPreview();
-                ClearLineInfo();
-            }
-
-            pictureBoxImage.Invalidate();
-        }
-
-
-
-        private void UpdateLineInfoFromCropBox(CropBoxInfo box)
-        {
-            GuideLineInfo line = box.OwnerLine;
-            if (line == null) return;
-
-            float dx = line.EndPt.X - line.StartPt.X;
-            float dy = line.EndPt.Y - line.StartPt.Y;
-            float length = (float)Math.Sqrt(dx * dx + dy * dy);
-
-            int cropCount = cropBoxMap[line].Count;
-
-            lblLineLength.Text = $"Line Length: {length:F1}px";
-            lblCropCount.Text = $"Crop Count: {cropCount}";
-        }
-
-        private void ClearLineInfo()
-        {
-            lblLineLength.Text = "Line Length: -";
-            lblCropCount.Text = "Crop Count: -";
-        }
-
-
-        private void ShowCropPreview(CropBoxInfo hoverdBox)   // 박스 미리보기
-        {
-            if (hoverdBox == null || originalMat == null)
-                return;
-
-            Rectangle r = hoverdBox.Rect;
-
-            var roi = new OpenCvSharp.Rect(   // ROI 생성
-                r.X, r.Y, r.Width, r.Height
-            );
-
-            using (Mat cropped = new Mat(originalMat, roi))   // ROI로 Mat 잘라내기
-            {
-                pictureBoxPreview.Image?.Dispose();
-                pictureBoxPreview.Image = BitmapConverter.ToBitmap(cropped);
-            }
-        }
-
-        private void ClearPreview()
-        {
-            pictureBoxPreview.Image?.Dispose();
-            pictureBoxPreview.Image = null;
-        }
-
         /* ================= Save ================= */
         private void BtnCropSave_Click(object sender, EventArgs e)
         {
@@ -662,26 +569,102 @@ namespace ImageCropTool
             pictureBoxImage.Invalidate();
         }
 
+
+        /* ================= Preview ================= */
+        private void UpdateHoverPreview(PointF originalPt)
+        {
+            hoveredBox = null;
+            hoveredLine = null;
+
+            foreach (var pair in cropBoxMap)
+            {
+                GuideLineInfo line = pair.Key;
+                List<CropBoxInfo> boxes = pair.Value;
+
+                foreach (var box in boxes)
+                {
+                    if (box.Rect.Contains(
+                        (int)originalPt.X,
+                        (int)originalPt.Y))
+                    {
+                        hoveredBox = box;
+                        hoveredLine = line;
+                        break;
+                    }
+                }
+                if (hoveredBox != null)
+                    break;
+            }
+
+            // hover 상태 갱신
+            foreach (var pair in cropBoxMap)
+                foreach (var box in pair.Value)
+                    box.IsHovered = (box == hoveredBox);
+
+            if (hoveredBox != null)
+            {
+                ShowCropPreview(hoveredBox);
+                UpdateLineInfo(hoveredLine);   // ⭐ 여기!!
+            }
+            else
+            {
+                ClearPreview();
+                ClearLineInfo();
+            }
+
+            pictureBoxImage.Invalidate();
+        }
+
+        private void ClearPreview()
+        {
+            pictureBoxPreview.Image?.Dispose();
+            pictureBoxPreview.Image = null;
+        }
+
+        private void ClearLineInfo()
+        {
+            lblLineLength.Text = "Line Length: -";
+            lblCropCount.Text = "Crop Count: -";
+        }
+
+
+        private void ShowCropPreview(CropBoxInfo hoverdBox)   // 박스 미리보기
+        {
+            if (hoverdBox == null || originalMat == null)
+                return;
+
+            Rectangle r = hoverdBox.Rect;
+
+            var roi = new OpenCvSharp.Rect(   // ROI 생성
+                r.X, r.Y, r.Width, r.Height
+            );
+
+            using (Mat cropped = new Mat(originalMat, roi))   // ROI로 Mat 잘라내기
+            {
+                pictureBoxPreview.Image?.Dispose();
+                pictureBoxPreview.Image = BitmapConverter.ToBitmap(cropped);
+            }
+        }
+
         /* ===============  UI ====================== */
         private void UpdateLineInfo(GuideLineInfo line)
         {
-            if (line == null)
+            if (line == null || !cropBoxMap.ContainsKey(line))
+            {
+                ClearLineInfo();
                 return;
+            }
 
             float dx = line.EndPt.X - line.StartPt.X;
             float dy = line.EndPt.Y - line.StartPt.Y;
-
             float length = (float)Math.Sqrt(dx * dx + dy * dy);
 
-            int cropSize = line.CropSize;
-
-            int cropCount = cropBoxMap.TryGetValue(line, out var boxes)
-                ? boxes.Count
-                : 0;
+            int cropCount = cropBoxMap[line].Count;
 
             lblLineLength.Text = $"Line Length: {length:F1}px";
             lblCropCount.Text = $"Crop Count: {cropCount}";
         }
+
 
 
         private void DrawLoadingSpinner(Graphics g)
